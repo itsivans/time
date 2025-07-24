@@ -21,13 +21,17 @@ function addActivity() {
 
   if (!activity) return alert("Inserisci una attività!");
 
-  // Se non scegli data, usa ora (ISO)
-  if (!dateTime) dateTime = new Date().toISOString();
+  // Se non scegli data, usa ora formattata "YYYY-MM-DDTHH:mm"
+  if (!dateTime) {
+    let now = new Date();
+    let tzoffset = now.getTimezoneOffset() * 60000;
+    dateTime = (new Date(now - tzoffset)).toISOString().slice(0,16);
+  }
 
   db.collection("activities").add({
     activity: activity,
     tag: tag,
-    timestamp: new Date(dateTime).toISOString()
+    timestamp: dateTime
   }).then(() => {
     loadActivities();
     document.getElementById('activity').value = "";
@@ -44,7 +48,6 @@ function loadActivities() {
     snapshot.forEach(doc => {
       const data = doc.data();
       let d = new Date(data.timestamp);
-      // Ottieni data e ora separati, sempre fuso Roma
       let localDate = d.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
       let localTime = d.toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', second: '2-digit' });
       let tagTxt = data.tag ? data.tag : "Nessun tag";
@@ -72,8 +75,7 @@ function deleteActivity(id) {
 function editActivity(id, currentActivity, currentTimestamp, currentTag) {
   editId = id;
   document.getElementById('editActivity').value = currentActivity;
-  // Se la data manca, metti ora corrente
-  document.getElementById('editDateTime').value = currentTimestamp ? currentTimestamp.slice(0,16) : new Date().toISOString().slice(0,16);
+  document.getElementById('editDateTime').value = currentTimestamp ? currentTimestamp.slice(0,16) : "";
   document.getElementById('editTag').value = currentTag || "";
   document.getElementById('editForm').style.display = "block";
 }
@@ -83,9 +85,10 @@ function saveEdit() {
   const newDateTime = document.getElementById('editDateTime').value;
   const newTag = document.getElementById('editTag').value;
   if (!newActivity || !newDateTime || !editId) return alert("Compila tutti i campi!");
+  // *** NON convertire in toISOString ***
   db.collection("activities").doc(editId).update({
     activity: newActivity,
-    timestamp: new Date(newDateTime).toISOString(),
+    timestamp: newDateTime,
     tag: newTag
   }).then(() => {
     cancelEdit();
