@@ -13,16 +13,17 @@ const db = firebase.firestore();
 
 function addActivity() {
   const activity = document.getElementById('activity').value;
-  let dateTime = document.getElementById('dateTime').value;
-  if (!dateTime) dateTime = new Date().toISOString();
+  if (!activity) return;
+
+  // Tempo UTC ora
+  const dateTimeUTC = new Date().toISOString();
 
   db.collection("activities").add({
     activity: activity,
-    timestamp: dateTime,
+    timestamp: dateTimeUTC,
   }).then(() => {
     loadActivities();
     document.getElementById('activity').value = "";
-    document.getElementById('dateTime').value = "";
   });
 }
 
@@ -32,7 +33,10 @@ function loadActivities() {
     list.innerHTML = "";
     snapshot.forEach(doc => {
       const data = doc.data();
-      const localDate = new Date(data.timestamp).toLocaleString();
+
+      // Converti la data salvata (UTC) in ora locale di Roma
+      const localDate = new Date(data.timestamp).toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
+
       list.innerHTML += `<li>${localDate}: ${data.activity} <button onclick="deleteActivity('${doc.id}')">X</button></li>`;
     });
   });
@@ -42,5 +46,5 @@ function deleteActivity(id) {
   db.collection("activities").doc(id).delete().then(loadActivities);
 }
 
-// Carica subito la lista all'avvio
+// Carica la lista all'avvio
 window.onload = loadActivities;
