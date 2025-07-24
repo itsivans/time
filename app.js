@@ -21,13 +21,13 @@ function addActivity() {
 
   if (!activity) return alert("Inserisci una attività!");
 
-  // Se non scegli data, usa ora
+  // Se non scegli data, usa ora (ISO)
   if (!dateTime) dateTime = new Date().toISOString();
 
   db.collection("activities").add({
     activity: activity,
     tag: tag,
-    timestamp: dateTime
+    timestamp: new Date(dateTime).toISOString()
   }).then(() => {
     loadActivities();
     document.getElementById('activity').value = "";
@@ -38,18 +38,27 @@ function addActivity() {
 
 // --- CARICAMENTO E VISUALIZZAZIONE ---
 function loadActivities() {
-  db.collection("activities").orderBy("timestamp", "desc").limit(50).get().then(snapshot => {
-    const list = document.getElementById('activityList');
-    list.innerHTML = "";
+  db.collection("activities").orderBy("timestamp", "desc").limit(100).get().then(snapshot => {
+    const tbody = document.getElementById('activityList');
+    tbody.innerHTML = "";
     snapshot.forEach(doc => {
       const data = doc.data();
-      const localDate = new Date(data.timestamp).toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
-      list.innerHTML += `<li>
-        <span class="tag">${data.tag ? data.tag : "Nessun tag"}</span>
-        <strong>${localDate}</strong>: ${data.activity} 
-        <button onclick="editActivity('${doc.id}', '${data.activity.replace(/'/g,"&#39;")}', '${data.timestamp}', '${data.tag ? data.tag : ""}')">✏️</button>
-        <button onclick="deleteActivity('${doc.id}')">❌</button>
-      </li>`;
+      let d = new Date(data.timestamp);
+      // Ottieni data e ora separati, sempre fuso Roma
+      let localDate = d.toLocaleDateString('it-IT', { timeZone: 'Europe/Rome' });
+      let localTime = d.toLocaleTimeString('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      let tagTxt = data.tag ? data.tag : "Nessun tag";
+      let activityTxt = data.activity ? data.activity : "";
+      tbody.innerHTML += `<tr>
+        <td>${localDate}</td>
+        <td>${localTime}</td>
+        <td><span class="tag">${tagTxt}</span></td>
+        <td>${activityTxt}</td>
+        <td class="actions">
+          <button onclick="editActivity('${doc.id}', '${activityTxt.replace(/'/g,"&#39;")}', '${data.timestamp}', '${data.tag ? data.tag : ""}')">✏️</button>
+          <button onclick="deleteActivity('${doc.id}')">❌</button>
+        </td>
+      </tr>`;
     });
   });
 }
@@ -76,7 +85,7 @@ function saveEdit() {
   if (!newActivity || !newDateTime || !editId) return alert("Compila tutti i campi!");
   db.collection("activities").doc(editId).update({
     activity: newActivity,
-    timestamp: newDateTime,
+    timestamp: new Date(newDateTime).toISOString(),
     tag: newTag
   }).then(() => {
     cancelEdit();
