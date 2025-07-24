@@ -33,10 +33,8 @@ function loadActivities() {
     list.innerHTML = "";
     snapshot.forEach(doc => {
       const data = doc.data();
-
-      // Converti la data salvata (UTC) in ora locale di Roma
+      // Visualizza in ora di Roma
       const localDate = new Date(data.timestamp).toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
-
       list.innerHTML += `<li>${localDate}: ${data.activity} <button onclick="deleteActivity('${doc.id}')">X</button></li>`;
     });
   });
@@ -46,5 +44,5 @@ function deleteActivity(id) {
   db.collection("activities").doc(id).delete().then(loadActivities);
 }
 
-// Carica la lista all'avvio
+// Carica subito la lista
 window.onload = loadActivities;
