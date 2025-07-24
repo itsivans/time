@@ -134,7 +134,7 @@ function calcolaPercentualiPerData(dataYYYYMMDD = null) {
   db.collection("activities")
     .where("timestamp", ">=", dataYYYYMMDD + "T00:00")
     .where("timestamp", "<=", dataYYYYMMDD + "T23:59")
-    .orderBy("timestamp")
+    .orderBy("timestamp") // <-- CRESCENTE! IMPORTANTE
     .get()
     .then(snapshot => {
       let items = [];
