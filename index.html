@@ -1,16 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Activity Tracker</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
 <body>
   <h2>Traccia le tue attività</h2>
   <input type="text" id="activity" placeholder="Attività...">
   <button onclick="addActivity()">Aggiungi</button>
   <ul id="activityList"></ul>
 
+  <!-- Form di modifica (nascosto di default) -->
+  <div id="editForm" style="display:none; margin-top:10px;">
+    <input type="text" id="editActivity" placeholder="Nuova attività">
+    <button onclick="saveEdit()">Salva</button>
+    <button onclick="cancelEdit()">Annulla</button>
+  </div>
+
   <script src="app.js"></script>
 </body>
-</html>
