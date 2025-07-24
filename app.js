@@ -109,3 +109,10 @@ window.onload = function() {
   var localISOTime = (new Date(now - tzoffset)).toISOString().slice(0,16);
   document.getElementById('dateTime').value = localISOTime;
 };
+
+// --- ESPONI LE FUNZIONI GLOBALI ---
+window.addActivity = addActivity;
+window.editActivity = editActivity;
+window.saveEdit = saveEdit;
+window.cancelEdit = cancelEdit;
+window.deleteActivity = deleteActivity;
