@@ -1,8 +1,12 @@
 // Incolla qui le tue credenziali Firebase (dal sito Firebase > Project settings > Your apps > Config)
 const firebaseConfig = {
-  apiKey: "QUI_LA_TUA_API_KEY",
-  authDomain: "QUI_LA_TUA_AUTH_DOMAIN",
-  projectId: "QUI_IL_TUO_PROJECT_ID",
+  apiKey: "AIzaSyDEq8aUhdBPcjYM6H6909DldXAdjhRNWbI",
+  authDomain: "time-ff7ed.firebaseapp.com",
+  projectId: "time-ff7ed",
+  storageBucket: "time-ff7ed.firebasestorage.app",
+  messagingSenderId: "842285944784",
+  appId: "1:842285944784:web:de483548153abc956033d5",
+  measurementId: "G-ZR0BNWGVXJ"
   // ...aggiungi tutti i parametri suggeriti da Firebase
 };
 firebase.initializeApp(firebaseConfig);
