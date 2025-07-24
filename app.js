@@ -85,7 +85,6 @@ function saveEdit() {
   const newDateTime = document.getElementById('editDateTime').value;
   const newTag = document.getElementById('editTag').value;
   if (!newActivity || !newDateTime || !editId) return alert("Compila tutti i campi!");
-  // *** NON convertire in toISOString ***
   db.collection("activities").doc(editId).update({
     activity: newActivity,
     timestamp: newDateTime,
@@ -111,7 +110,97 @@ window.onload = function() {
   var tzoffset = now.getTimezoneOffset() * 60000;
   var localISOTime = (new Date(now - tzoffset)).toISOString().slice(0,16);
   document.getElementById('dateTime').value = localISOTime;
+
+  // Imposta la data stats (default oggi)
+  let today = new Date().toISOString().slice(0,10);
+  document.getElementById('statsDate').value = today;
 };
+
+// --- STATISTICHE (tabella + grafico a torta) ---
+let statsPieChart = null;
+
+function calcolaPercentualiPerData(dataYYYYMMDD = null) {
+  // Se non passi la data, prendi il valore dall'input o OGGI
+  if (!dataYYYYMMDD) {
+    dataYYYYMMDD = document.getElementById('statsDate').value;
+    if (!dataYYYYMMDD) {
+      // Default: oggi
+      let now = new Date();
+      dataYYYYMMDD = now.toISOString().slice(0,10);
+      document.getElementById('statsDate').value = dataYYYYMMDD;
+    }
+  }
+
+  db.collection("activities")
+    .where("timestamp", ">=", dataYYYYMMDD + "T00:00")
+    .where("timestamp", "<=", dataYYYYMMDD + "T23:59")
+    .orderBy("timestamp")
+    .get()
+    .then(snapshot => {
+      let items = [];
+      snapshot.forEach(doc => {
+        let d = doc.data();
+        items.push({
+          tag: d.tag || "Nessun tag",
+          timestamp: d.timestamp,
+          descrizione: d.activity || ""
+        });
+      });
+
+      if (items.length < 2) {
+        document.getElementById('statsResult').innerHTML = "<b>Pochi dati, aggiungi più attività!</b>";
+        if (statsPieChart) statsPieChart.destroy();
+        return;
+      }
+
+      let tempoPerTag = {};
+      let totaliMinuti = 0;
+      for (let i = 0; i < items.length - 1; i++) {
+        let t1 = new Date(items[i].timestamp);
+        let t2 = new Date(items[i + 1].timestamp);
+        let diffMin = Math.round((t2 - t1) / 60000); // in minuti
+        if (diffMin < 0) continue;
+        let tag = items[i].tag;
+        tempoPerTag[tag] = (tempoPerTag[tag] || 0) + diffMin;
+        totaliMinuti += diffMin;
+      }
+
+      // Crea tabella HTML
+      let risultato = `<b>Statistiche del ${dataYYYYMMDD}</b> (Totale minuti tracciati: <b>${totaliMinuti}</b>)<br><table border="1" cellpadding="4"><tr><th>Tag</th><th>Minuti</th><th>%</th></tr>`;
+      Object.entries(tempoPerTag).forEach(([tag, minuti]) => {
+        let perc = ((minuti / totaliMinuti) * 100).toFixed(1);
+        risultato += `<tr><td>${tag}</td><td>${minuti}</td><td>${perc}%</td></tr>`;
+      });
+      risultato += "</table>";
+      document.getElementById('statsResult').innerHTML = risultato;
+
+      // GRAFICO TORTA
+      let ctx = document.getElementById('statsPie').getContext('2d');
+      let tags = Object.keys(tempoPerTag);
+      let values = Object.values(tempoPerTag);
+
+      if (statsPieChart) statsPieChart.destroy();
+      statsPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: tags,
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              '#7D6CF6','#39C7AA','#F9D923','#F56A79','#6EDCD9','#005792',
+              '#FFB6B9','#8EC6C5','#D7BDE2','#F7CAC9','#92A8D1','#FF7E67','#9B59B6'
+            ]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: true, position: 'right' }
+          }
+        }
+      });
+    });
+}
+window.calcolaPercentualiPerData = calcolaPercentualiPerData;
 
 // --- ESPONI LE FUNZIONI GLOBALI ---
 window.addActivity = addActivity;
