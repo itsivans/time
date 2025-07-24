@@ -5,11 +5,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: Arial; }
+    body { font-family: Arial, sans-serif; }
     #editForm, #addForm { margin-top: 16px; background: #f5f5f5; padding: 8px; border-radius: 8px; }
-    li { margin-bottom: 4px; }
-    .tag { background: #e1e1e1; padding: 1px 6px; border-radius: 4px; font-size: 0.95em; margin-right: 7px; }
-    button { margin-left: 4px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 12px;}
+    th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+    th { background: #e8e8e8; }
+    .tag { background: #e1e1e1; padding: 1px 6px; border-radius: 4px; font-size: 0.95em;}
+    button { margin-left: 2px; }
+    .actions button { margin-left: 0; margin-right: 2px; }
   </style>
 </head>
 <body>
@@ -39,8 +42,19 @@
     <button onclick="addActivity()">Aggiungi</button>
   </div>
 
-  <!-- LISTA -->
-  <ul id="activityList"></ul>
+  <!-- TABELLA LISTA -->
+  <table id="activityTable">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Ora</th>
+        <th>Tag</th>
+        <th>Attività</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody id="activityList"></tbody>
+  </table>
 
   <!-- FORM MODIFICA -->
   <div id="editForm" style="display:none;">
@@ -64,9 +78,4 @@
       <option>Sleep</option>
     </select>
     <button onclick="saveEdit()">Salva</button>
-    <button onclick="cancelEdit()">Annulla</button>
-  </div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+    <button onclick="cancelEdit()">Annulla</bu
