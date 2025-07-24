@@ -12,11 +12,35 @@ const db = firebase.firestore();
 
 let editId = null, statsPieChart = null, weekPieChart = null;
 
+// ------ ORARIO AUTOMATICO SU AGGIUNTA ATTIVITÀ ------
+document.getElementById('activity').addEventListener('keydown', function(e) {
+  if(e.key === "Enter") addActivity();
+});
+document.getElementById('activity').addEventListener('focus', function() {
+  if (!document.getElementById('dateTime').value) {
+    document.getElementById('dateTime').value = getLocalISODateTimeNow();
+  }
+});
+document.getElementById('dateTime').addEventListener('focus', function() {
+  if (!this.value) this.value = getLocalISODateTimeNow();
+});
+
+function getLocalISODateTimeNow() {
+  const now = new Date();
+  now.setSeconds(0,0);
+  // Locale in Europe/Rome (Italia)
+  const tzOffset = -now.getTimezoneOffset();
+  const localISO = new Date(now.getTime() + tzOffset * 60000)
+    .toISOString().slice(0,16);
+  return localISO;
+}
+
 function addActivity() {
   const activity = document.getElementById('activity').value.trim();
-  const dateTime = document.getElementById('dateTime').value;
+  let dateTime = document.getElementById('dateTime').value;
   const tag = document.getElementById('tag').value;
-  if (!activity || !dateTime || !tag) return alert("Inserisci tutto!");
+  if (!activity || !tag) return alert("Inserisci attività e tag!");
+  if (!dateTime) dateTime = getLocalISODateTimeNow();
   db.collection("activities").add({
     activity, tag,
     timestamp: dateTime
@@ -86,9 +110,9 @@ function cancelEdit() {
   document.getElementById('editForm').style.display = "none";
 }
 
-// Tag che NON contano come "tempo gestibile"
+// ------ TAG NON gestibili (NON_LIBERI) ------
 const NON_LIBERI = [
-  "Survive", "Work", "Sleep", "Nut", "Slavery", "Holiday", "Chinese", "Gym", "Bike"
+  "Survive", "Sleep", "Work", "Slavery"
 ];
 
 // --------- STATISTICHE GIORNALIERE ---------
