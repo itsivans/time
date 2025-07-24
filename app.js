@@ -11,11 +11,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+let editId = null;
+
 function addActivity() {
   const activity = document.getElementById('activity').value;
   if (!activity) return;
 
-  // Tempo UTC ora
   const dateTimeUTC = new Date().toISOString();
 
   db.collection("activities").add({
@@ -33,9 +34,11 @@ function loadActivities() {
     list.innerHTML = "";
     snapshot.forEach(doc => {
       const data = doc.data();
-      // Visualizza in ora di Roma
       const localDate = new Date(data.timestamp).toLocaleString('it-IT', { timeZone: 'Europe/Rome' });
-      list.innerHTML += `<li>${localDate}: ${data.activity} <button onclick="deleteActivity('${doc.id}')">X</button></li>`;
+      list.innerHTML += `<li>${localDate}: ${data.activity} 
+        <button onclick="editActivity('${doc.id}', '${data.activity.replace(/'/g,"&#39;")}')">✏️</button>
+        <button onclick="deleteActivity('${doc.id}')">❌</button>
+        </li>`;
     });
   });
 }
@@ -44,5 +47,29 @@ function deleteActivity(id) {
   db.collection("activities").doc(id).delete().then(loadActivities);
 }
 
-// Carica subito la lista
+// --- FUNZIONI DI MODIFICA ---
+function editActivity(id, currentActivity) {
+  editId = id;
+  document.getElementById('editActivity').value = currentActivity;
+  document.getElementById('editForm').style.display = "inline";
+}
+
+function saveEdit() {
+  const newActivity = document.getElementById('editActivity').value;
+  if (!newActivity || !editId) return;
+  db.collection("activities").doc(editId).update({
+    activity: newActivity
+  }).then(() => {
+    cancelEdit();
+    loadActivities();
+  });
+}
+
+function cancelEdit() {
+  editId = null;
+  document.getElementById('editActivity').value = "";
+  document.getElementById('editForm').style.display = "none";
+}
+
+// Carica la lista all'avvio
 window.onload = loadActivities;
